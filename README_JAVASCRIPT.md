@@ -812,3 +812,308 @@ const req = newRequestModule;
 inventoryTracker('apples', req, 'www.inventory-awesome.io');
 ```
 **[⬆ Về đầu trang](#mục-lục)**
+
+## Đối tượng và Cấu trúc dữ liệu
+### Sử dụng getter và setter
+JavaScript không có interface hoặc kiểu vì vậy rất khó để thực hiện mô hình này, bởi vì chúng ta không có các từ khoá như `public` và `private`. Vì vậy, sử dụng getters và setters để truy cập dữ liệu trên các đối tượng thì tốt hơn là chỉ đơn giản tìm kiếm một thuộc tính trên một đối tượng. Bạn có thể hỏi "Tại sao?". Đây là một danh sách các lí do tại sao:
+
+* Khi bạn muốn thực hiện nhiều hơn việc lấy một thuộc tính của đối tượng, bạn không cần phải tìm kiếm và thay đổi mỗi accessor trong codebase của bạn.
+* Làm cho việc thêm các validation đơn giản khi thực hiện trên một `tập hợp`.
+* Đóng gói các biểu diễn nội bộ.
+* Dễ dàng thêm log và xử lí lỗi khi getting và setting.
+* Kế thừa lớp này, bạn có thể override những hàm mặc định.
+* Bạn có thể lazy load các thuộc tính của một đối tượng, lấy nó từ server.
+
+
+**Không tốt:**
+```javascript
+function makeBankAccount() {
+  // ...
+
+  return {
+    balance: 0,
+    // ...
+  };
+}
+
+const account = makeBankAccount();
+account.balance = 100;
+```
+
+**Tốt:**
+```javascript
+function makeBankAccount() {
+  // this one is private
+  let balance = 0;
+
+  // Một "getter", thiết lập public thông qua đối tượng được trả về dưới đây
+  function getBalance() {
+    return balance;
+  }
+
+  // Một "setter", thiết lập public thông qua đối tượng được trả về dưới đây
+  function setBalance(amount) {
+    // ... validate before updating the balance
+    balance = amount;
+  }
+
+  return {
+    // ...
+    getBalance,
+    setBalance,
+  };
+}
+
+const account = makeBankAccount();
+account.setBalance(100);
+
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+
+### Làm cho các đối tượng có thành viên private
+Điều này có thể được thực hiện thông qua closures (cho ES5 và cũ hơn).
+
+**Không tốt:**
+```javascript
+
+const Employee = function(name) {
+  this.name = name;
+};
+
+Employee.prototype.getName = function getName() {
+  return this.name;
+};
+
+const employee = new Employee('John Doe');
+console.log(`Employee name: ${employee.getName()}`); // Employee name: John Doe
+delete employee.name;
+console.log(`Employee name: ${employee.getName()}`); // Employee name: undefined
+```
+
+**Tốt:**
+```javascript
+const Employee = function (name) {
+  this.getName = function getName() {
+    return name;
+  };
+};
+
+const employee = new Employee('John Doe');
+console.log(`Employee name: ${employee.getName()}`); // Employee name: John Doe
+delete employee.name;
+console.log(`Employee name: ${employee.getName()}`); // Employee name: John Doe
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+
+## Lớp
+
+### Ưu tiên lớp ES2015/ES6 hơn các chức năng thuần ES5
+Rất khó khăn để có thể đọc được lớp thừa kế, lớp khởi tạo, và các định nghĩa phương thức trong các lớp ES5 cổ điển. Nếu bạn cần kế thừa (hoặc không), tốt hơn là nên sử dụng lớp. Tuy nhiên ưu tiên sử dụng những hàm nhỏ hơn là lớp cho đến khi bạn cần những đối tượng lớn và phức tạp hơn.
+
+**Không tốt:**
+```javascript
+const Animal = function(age) {
+  if (!(this instanceof Animal)) {
+    throw new Error('Instantiate Animal with `new`');
+  }
+
+  this.age = age;
+};
+
+Animal.prototype.move = function move() {};
+
+const Mammal = function(age, furColor) {
+  if (!(this instanceof Mammal)) {
+    throw new Error('Instantiate Mammal with `new`');
+  }
+
+  Animal.call(this, age);
+  this.furColor = furColor;
+};
+
+Mammal.prototype = Object.create(Animal.prototype);
+Mammal.prototype.constructor = Mammal;
+Mammal.prototype.liveBirth = function liveBirth() {};
+
+const Human = function(age, furColor, languageSpoken) {
+  if (!(this instanceof Human)) {
+    throw new Error('Instantiate Human with `new`');
+  }
+
+  Mammal.call(this, age, furColor);
+  this.languageSpoken = languageSpoken;
+};
+
+Human.prototype = Object.create(Mammal.prototype);
+Human.prototype.constructor = Human;
+Human.prototype.speak = function speak() {};
+```
+
+**Tốt:**
+```javascript
+class Animal {
+  constructor(age) {
+    this.age = age;
+  }
+
+  move() { /* ... */ }
+}
+
+class Mammal extends Animal {
+  constructor(age, furColor) {
+    super(age);
+    this.furColor = furColor;
+  }
+
+  liveBirth() { /* ... */ }
+}
+
+class Human extends Mammal {
+  constructor(age, furColor, languageSpoken) {
+    super(age, furColor);
+    this.languageSpoken = languageSpoken;
+  }
+
+  speak() { /* ... */ }
+}
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Sử dụng các hàm liên tiếp nhau
+Đây là một pattern rất hữu ích trong JavaScript và bạn thấy nó trong rất nhiều thư viện chẳng hạn như jQuery và Lodash. Nó cho phép code của bạn có tính truyền tải và ngắn gọn. Vì lý do đó, theo tôi, sử dụng phương pháp các hàm liên tiếp nhau và hãy xem code của bạn sẽ sạch sẽ như thế nào. Trong các hàm của lớp, đơn giản là trả về `this` ở cuối mỗi hàm, và bạn có thể xâu chuỗi các phương thức khác vào trong nó.
+
+**Không tốt:**
+```javascript
+class Car {
+  constructor() {
+    this.make = 'Honda';
+    this.model = 'Accord';
+    this.color = 'white';
+  }
+
+  setMake(make) {
+    this.make = make;
+  }
+
+  setModel(model) {
+    this.model = model;
+  }
+
+  setColor(color) {
+    this.color = color;
+  }
+
+  save() {
+    console.log(this.make, this.model, this.color);
+  }
+}
+
+const car = new Car();
+car.setColor('pink');
+car.setMake('Ford');
+car.setModel('F-150');
+car.save();
+```
+
+**Tốt:**
+```javascript
+class Car {
+  constructor() {
+    this.make = 'Honda';
+    this.model = 'Accord';
+    this.color = 'white';
+  }
+
+  setMake(make) {
+    this.make = make;
+    // Ghi chú: Trả về this để xâu chuỗi các phương thức
+    return this;
+  }
+
+  setModel(model) {
+    this.model = model;
+    // Ghi chú: Trả về this để xâu chuỗi các phương thức
+    return this;
+  }
+
+  setColor(color) {
+    this.color = color;
+    // Ghi chú: Trả về this để xâu chuỗi các phương thức
+    return this;
+  }
+
+  save() {
+    console.log(this.make, this.model, this.color);
+    // Ghi chú: Trả về this để xâu chuỗi các phương thức
+    return this;
+  }
+}
+
+const car = new Car()
+  .setColor('pink')
+  .setMake('Ford')
+  .setModel('F-150')
+  .save();
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Ưu tiên thành phần hơn là kế thừa
+Như đã được nhấn mạnh nhiều trong [*Design Patterns*](https://en.wikipedia.org/wiki/Design_Patterns) của Gang of Four, bạn nên sử dụng cấu trúc thành phần hơn là thừa kế nếu có thể. Có rất nhiều lý do tốt để sử dụng kế thừa cũng như sử dụng thành phần. Điểm nhấn cho phương châm này đó là nếu tâm trí của bạn đi theo bản năng thừa kế, thử nghĩ nếu thành phần có thể mô hình vấn đề của bạn tốt hơn. Trong một số trường hợp nó có thể.
+
+Bạn có thể tự hỏi, "khi nào tôi nên sử dụng thừa kế?" Nó phụ thuộc vào vấn đề trong tầm tay của bạn, nhưng đây là một danh sách manh nha khi kế thừa có ý nghĩa hơn thành phần:
+
+1. Kế thừa của bạn đại diện cho mỗi quan hệ "is-a" và không có mỗi quan hệ "has-a" (Human->Animal vs. User->UserDetails).
+2. Bạn có thể sử dụng lại code từ lớp cơ bản (Humans có thể di chuyển giống tất cả Animals).
+3. Bạn muốn làm thay đổi toàn cục đến các lớp dẫn xuất bằng cách thay đổi lớp cơ bản.
+(Thay đổi lượng calo của tất cả animal khi chúng di chuyển)
+
+**Không tốt:**
+```javascript
+class Employee {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+
+  // ...
+}
+
+// Không tốt bởi vì Employees "có" dữ liệu thuế.
+// EmployeeTaxData không phải là một loại của Employee
+class EmployeeTaxData extends Employee {
+  constructor(ssn, salary) {
+    super();
+    this.ssn = ssn;
+    this.salary = salary;
+  }
+
+  // ...
+}
+```
+
+**Tốt:**
+```javascript
+class EmployeeTaxData {
+  constructor(ssn, salary) {
+    this.ssn = ssn;
+    this.salary = salary;
+  }
+
+  // ...
+}
+
+class Employee {
+  constructor(name, email) {
+    this.name = name;
+    this.email = email;
+  }
+
+  setTaxData(ssn, salary) {
+    this.taxData = new EmployeeTaxData(ssn, salary);
+  }
+  // ...
+}
+```
+**[⬆ Về đầu trang](#mục-lục)**
