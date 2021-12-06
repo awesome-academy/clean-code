@@ -1515,3 +1515,59 @@ const inventoryTracker = new InventoryTracker(['apples', 'bananas'], new Invento
 inventoryTracker.requestItems();
 ```
 **[⬆ Về đầu trang](#mục-lục)**
+
+## **Testing**
+Testing thì quan trọng hơn shipping. Nếu bạn không có test hoặc không có đủ, thì mỗi lần ship code bạn sẽ không chắc là mình có làm hư hại thứ gì không?
+Việc quyết định những gì để tạo thành số lượng test đủ là do team của bạn, nhưng việc có 100% độ bao phủ (tất cả các câu lệnh và rẽ nhánh) là cách để bạn đạt được sự tự tin cao. Điều này có nghĩa ngoài việc có được một framework để test tốt, bạn cũng cần sử dụng một [công cụ bao phủ tốt](http://gotwarlost.github.io/istanbul/).
+
+Không có lí do gì để không viết test. Có [rất nhiều framework test JS tốt](http://jstherightway.org/#testing-tools), vì thế hãy tìm một framework mà team bạn thích. Khi đã tìm được một cái thích hợp với team của mình, hãy đặt mục tiêu để luôn luôn viết test cho mỗi tính năng hoặc module mới của bạn. Nếu phương pháp test ưa thích của bạn là Test Driven Development (TDD), điều đó thật tuyệt, nhưng điểm quan trọng là phải chắc chắn bạn đạt được mục tiêu về độ bao phủ trước khi launch một tính năng hoặc refactor một tính năng cũ nào đó.
+### Một khái niệm duy nhất cho mỗi đơn vị test
+
+**Không tốt:**
+```javascript
+const assert = require('assert');
+
+describe('MakeMomentJSGreatAgain', () => {
+  it('handles date boundaries', () => {
+    let date;
+
+    date = new MakeMomentJSGreatAgain('1/1/2015');
+    date.addDays(30);
+    date.shouldEqual('1/31/2015');
+
+    date = new MakeMomentJSGreatAgain('2/1/2016');
+    date.addDays(28);
+    assert.equal('02/29/2016', date);
+
+    date = new MakeMomentJSGreatAgain('2/1/2015');
+    date.addDays(28);
+    assert.equal('03/01/2015', date);
+  });
+});
+```
+
+**Tốt:**
+```javascript
+const assert = require('assert');
+
+describe('MakeMomentJSGreatAgain', () => {
+  it('handles 30-day months', () => {
+    const date = new MakeMomentJSGreatAgain('1/1/2015');
+    date.addDays(30);
+    date.shouldEqual('1/31/2015');
+  });
+
+  it('handles leap year', () => {
+    const date = new MakeMomentJSGreatAgain('2/1/2016');
+    date.addDays(28);
+    assert.equal('02/29/2016', date);
+  });
+
+  it('handles non-leap year', () => {
+    const date = new MakeMomentJSGreatAgain('2/1/2015');
+    date.addDays(28);
+    assert.equal('03/01/2015', date);
+  });
+});
+```
+**[⬆ Về đầu trang](#mục-lục)**
