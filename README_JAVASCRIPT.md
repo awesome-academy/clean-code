@@ -1571,3 +1571,92 @@ describe('MakeMomentJSGreatAgain', () => {
 });
 ```
 **[⬆ Về đầu trang](#mục-lục)**
+
+## Xử lý đồng thời
+### Dùng Promise, đừng dùng callback
+Callback thì không được 'sạch' cho lắm, chúng gây ra quá nhiều đoạn code lồng nhau (callback hell). Từ ES2015/ES6, Promise đã được đưa vào Javascript. Hãy sử dụng chúng!
+
+**Không tốt:**
+```javascript
+import { get } from "request";
+import { writeFile } from "fs";
+
+get(
+  "https://en.wikipedia.org/wiki/Robert_Cecil_Martin",
+  (requestErr, response, body) => {
+    if (requestErr) {
+      console.error(requestErr);
+    } else {
+      writeFile("article.html", body, writeErr => {
+        if (writeErr) {
+          console.error(writeErr);
+        } else {
+          console.log("File written");
+        }
+      });
+    }
+  }
+);
+
+```
+
+**Tốt:**
+```javascript
+import { get } from "request-promise";
+import { writeFile } from "fs-extra";
+
+get("https://en.wikipedia.org/wiki/Robert_Cecil_Martin")
+  .then(body => {
+    return writeFile("article.html", body);
+  })
+  .then(() => {
+    console.log("File written");
+  })
+  .catch(err => {
+    console.error(err);
+  });
+
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Async/Await thì 'sạch' hơn Promise
+Promise đã là sự thay thế khá 'sạch' cho callback, nhưng ES2017/ES8 giới thiệu async và await, đó thậm chí còn là một giải pháp tốt hơn Promise. Những gì bạn cần phải làm là một hàm bắt đầu là từ khoá `async`, và bạn có thể viết các lệnh logic mà không cần một chuỗi `then` của các hàm. Hãy sử dụng điều này nếu bạn có thể tận dụng các tính năng của ES2017/ES8 ngay hôm nay!
+
+**Không tốt:**
+```javascript
+import { get } from "request-promise";
+import { writeFile } from "fs-extra";
+
+get("https://en.wikipedia.org/wiki/Robert_Cecil_Martin")
+  .then(body => {
+    return writeFile("article.html", body);
+  })
+  .then(() => {
+    console.log("File written");
+  })
+  .catch(err => {
+    console.error(err);
+  });
+
+```
+
+**Tốt:**
+```javascript
+import { get } from "request-promise";
+import { writeFile } from "fs-extra";
+
+async function getCleanCodeArticle() {
+  try {
+    const body = await get(
+      "https://en.wikipedia.org/wiki/Robert_Cecil_Martin"
+    );
+    await writeFile("article.html", body);
+    console.log("File written");
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+getCleanCodeArticle()
+```
+**[⬆ Về đầu trang](#mục-lục)**
