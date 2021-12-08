@@ -1660,3 +1660,65 @@ async function getCleanCodeArticle() {
 getCleanCodeArticle()
 ```
 **[⬆ Về đầu trang](#mục-lục)**
+
+## Xử lý lỗi
+Xử lý lỗi là một điều tốt! Điều này có nghĩa là chương trình của bạn nhận dạng được khi có một cái gì đó chạy không đúng và nó sẽ cho bạn biết bằng cách dừng thực thi chức năng trên ngăn xếp hiện tại, huỷ tiến trình (trong Node), và thông báo cho bạn trong console với một stack để theo dấu.
+### Đừng bỏ qua việc bắt lỗi
+Nếu không làm gì với lỗi xảy ra, bạn sẽ không thể sửa hoặc phản ứng lại được với lỗi đó. Ghi lỗi ra console (`console.log`) cũng không tốt hơn bao nhiêu vì đa số nó có thể bị trôi mất trong một đống những thứ được hiển thị ra ở console. Nếu bạn đặt bất cứ đoạn code nào trong một block `try/catch`, tức là bạn nghĩ một lỗi có thể xảy ra ở đây, do đó bạn nên có một giải pháp hoặc tạo một luồng code để xử lí lỗi khi nó xảy ra.
+
+**Không tốt:**
+```javascript
+try {
+  functionThatMightThrow();
+} catch (error) {
+  console.log(error);
+}
+```
+
+**Tốt:**
+```javascript
+try {
+  functionThatMightThrow();
+} catch (error) {
+  // One option (more noisy than console.log):
+  console.error(error);
+  // Another option:
+  notifyUserOfError(error);
+  // Another option:
+  reportErrorToService(error);
+  // OR do all three!
+}
+```
+
+### Đừng bỏ qua những rejected promise
+Cùng nguyên nhân với phần trên. Không nên bỏ qua các lỗi bắt được từ `try/catch`.
+
+**Không tốt:**
+```javascript
+getdata()
+  .then(data => {
+    functionThatMightThrow(data);
+  })
+  .catch(error => {
+    console.log(error);
+  });
+```
+
+**Tốt:**
+```javascript
+getdata()
+.then((data) => {
+  functionThatMightThrow(data);
+})
+.catch((error) => {
+  // One option (more noisy than console.log):
+  console.error(error);
+  // Another option:
+  notifyUserOfError(error);
+  // Another option:
+  reportErrorToService(error);
+  // OR do all three!
+});
+```
+
+**[⬆ Về trang chủ](#mục-lục)**
