@@ -1722,3 +1722,246 @@ getdata()
 ```
 
 **[⬆ Về trang chủ](#mục-lục)**
+
+## Định dạng
+Việc định dạng code mang tính chủ quan. Giống như nhiều quy tắc được trình bày trong tài liệu này, không có một quy tắc cụ thể nào mà bạn bắt buộc phải tuân theo. Điểm chính của phần này là ĐỪNG BAO GIỜ TRANH CÃI về việc định dạng code như thế nào. Có [hàng tá công cụ](http://standardjs.com/rules.html) để tự động hoá việc này. Hãy sử dụng một công cụ nào đó! Thật tốn thời gian và tiền bạc chỉ để tranh cãi về vấn đề định dạng code.
+
+Đối với những thứ không thuộc phạm vi của việc tự động định dạng code (thụt đầu dòng, tab và space, nháy đơn và nháy kép,..) hãy xem một số hướng dẫn ở đây.
+
+### Sử dụng thống nhất cách viết hoa
+Javascript là một ngôn ngữ không định kiểu, vì vậy việc viết hoa sẽ nói lên rất nhiều về các biến, hàm,.. của bạn. Những quy tắc này thì mang tính chủ quan, vì thế team bạn có thể chọn quy tắc nào họ muốn. Tuy nhiên điều quan trọng là dù bạn chọn cách viết như thế nào, thì cũng hãy sử dụng thống nhất nó trong codebase của bạn.
+
+**Không tốt:**
+```javascript
+const DAYS_IN_WEEK = 7;
+const daysInMonth = 30;
+
+const songs = ['Back In Black', 'Stairway to Heaven', 'Hey Jude'];
+const Artists = ['ACDC', 'Led Zeppelin', 'The Beatles'];
+
+function eraseDatabase() {}
+function restore_database() {}
+
+class animal {}
+class Alpaca {}
+```
+
+**Tốt:**
+```javascript
+const DAYS_IN_WEEK = 7;
+const DAYS_IN_MONTH = 30;
+
+const songs = ['Back In Black', 'Stairway to Heaven', 'Hey Jude'];
+const artists = ['ACDC', 'Led Zeppelin', 'The Beatles'];
+
+function eraseDatabase() {}
+function restoreDatabase() {}
+
+class Animal {}
+class Alpaca {}
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+
+### Các hàm gọi và hàm được gọi nên nằm gần nhau
+Nếu một hàm gọi một hàm khác, hãy giữ những hàm này nằm gần theo chiều dọc trong file. Tốt nhất là hãy giữ cho hàm gọi ở trên hàm được gọi. Chúng ta có xu hướng đọc code từ trên xuống, giống như đọc báo vậy. Do đó, hãy làm cho code của chúng ta cũng được đọc theo cách đó.
+
+**Không tốt:**
+```javascript
+class PerformanceReview {
+  constructor(employee) {
+    this.employee = employee;
+  }
+
+  lookupPeers() {
+    return db.lookup(this.employee, 'peers');
+  }
+
+  lookupManager() {
+    return db.lookup(this.employee, 'manager');
+  }
+
+  getPeerReviews() {
+    const peers = this.lookupPeers();
+    // ...
+  }
+
+  perfReview() {
+    this.getPeerReviews();
+    this.getManagerReview();
+    this.getSelfReview();
+  }
+
+  getManagerReview() {
+    const manager = this.lookupManager();
+  }
+
+  getSelfReview() {
+    // ...
+  }
+}
+
+const review = new PerformanceReview(user);
+review.perfReview();
+```
+
+**Tốt:**
+```javascript
+class PerformanceReview {
+  constructor(employee) {
+    this.employee = employee;
+  }
+
+  perfReview() {
+    this.getPeerReviews();
+    this.getManagerReview();
+    this.getSelfReview();
+  }
+
+  getPeerReviews() {
+    const peers = this.lookupPeers();
+    // ...
+  }
+
+  lookupPeers() {
+    return db.lookup(this.employee, 'peers');
+  }
+
+  getManagerReview() {
+    const manager = this.lookupManager();
+  }
+
+  lookupManager() {
+    return db.lookup(this.employee, 'manager');
+  }
+
+  getSelfReview() {
+    // ...
+  }
+}
+
+const review = new PerformanceReview(employee);
+review.perfReview();
+```
+
+**[⬆ Về đầu trang](#mục-lục)**
+
+## Viết chú thích
+### Chỉ nên viết chú thích cho những thứ có logic phức tạp.
+Các chú thích thường là lời xin lỗi, chứ không phải là yêu cầu. Những đoạn code tốt thì *đa số* tự nó đã là tài liệu rồi.
+
+**Không tốt:**
+```javascript
+function hashIt(data) {
+  // Khai báo hash
+  let hash = 0;
+
+  // Lấy chiều dài của chuỗi
+  const length = data.length;
+
+  // Lặp qua mỗi kí tự
+  for (let i = 0; i < length; i++) {
+    // Lấy mã của kí tự
+    const char = data.charCodeAt(i);
+    // Gán giá trị cho hash
+    hash = ((hash << 5) - hash) + char;
+    // Chuyển thành định dạng số nguyên 32 bit
+    hash &= hash;
+  }
+}
+```
+
+**Tốt:**
+```javascript
+
+function hashIt(data) {
+  let hash = 0;
+  const length = data.length;
+
+  for (let i = 0; i < length; i++) {
+    const char = data.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+
+    // Chuyển thành định dạng số nguyên 32 bit
+    hash &= hash;
+  }
+}
+
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Đừng giữ lại những đoạn code bị chú thích trong codebase của bạn.
+Những công cụ quản lí phiên bản sinh ra để làm nhiệm vụ của chúng.
+Hãy để code cũ của bạn nằm lại trong dĩ vãng đi.
+
+**Không tốt:**
+```javascript
+doStuff();
+// doOtherStuff();
+// doSomeMoreStuff();
+// doSoMuchStuff();
+```
+
+**Tốt:**
+```javascript
+doStuff();
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Đừng viết các chú thích nhật ký.
+Hãy nhớ, sử dụng công cụ quản lí phiên bản! Chúng ta không cần những đoạn code vô dụng, bị chú thích và đặc biệt là những chú thích dạng nhật ký... Sử dụng `git log` để xem lịch sử được mà!
+
+**Không tốt:**
+```javascript
+/**
+ * 2016-12-20: Removed monads, didn't understand them (RM)
+ * 2016-10-01: Improved using special monads (JP)
+ * 2016-02-03: Removed type-checking (LI)
+ * 2015-03-14: Added combine with type-checking (JR)
+ */
+function combine(a, b) {
+  return a + b;
+}
+```
+
+**Tốt:**
+```javascript
+function combine(a, b) {
+  return a + b;
+}
+```
+**[⬆ Về đầu trang](#mục-lục)**
+
+### Tránh những đánh dấu vị trí
+Chúng thường xuyên làm nhiễu code. Hãy để những tên hàm, biến cùng với các định dạng thích hợp tự tạo thành cấu trúc trực quan cho code của bạn.
+
+**Không tốt:**
+```javascript
+////////////////////////////////////////////////////////////////////////////////
+// Scope Model Instantiation
+////////////////////////////////////////////////////////////////////////////////
+$scope.model = {
+  menu: 'foo',
+  nav: 'bar'
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Action setup
+////////////////////////////////////////////////////////////////////////////////
+const actions = function() {
+  // ...
+};
+```
+
+**Tốt:**
+```javascript
+$scope.model = {
+  menu: 'foo',
+  nav: 'bar'
+};
+
+const actions = function() {
+  // ...
+};
+```
+**[⬆ Về đầu trang](#mục-lục)**
