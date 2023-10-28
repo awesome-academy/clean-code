@@ -17,3 +17,4 @@ Biết những hướng dẫn này thôi sẽ không thể ngay lập tức làm
 1. [Clean code Kotlin](README_KOTLIN.md)
 2. [Clean code Swift](README_SWIFT.md)
 3. [Clean code Javascript](README_JAVASCRIPT.md)
+4. [Clean code Dart](README_DART.md)
